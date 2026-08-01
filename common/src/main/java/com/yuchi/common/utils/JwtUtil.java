@@ -1,12 +1,10 @@
-package com.yuchi.userservice.utils;
+package com.yuchi.common.utils;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-
-import com.yuchi.userservice.constant.UserConstant;
-
+import com.yuchi.common.constant.CommonConstant;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -40,7 +38,7 @@ public final class JwtUtil {
      * 获取签名密钥（从常量类读取，避免硬编码）
      */
     public static Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(UserConstant.TOKEN_SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(CommonConstant.TOKEN_SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -69,6 +67,3 @@ public final class JwtUtil {
 
 
 }
-    /**
-     * 解析JWT（区分不同异常类型，便于排查）
-     */

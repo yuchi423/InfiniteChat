@@ -1,9 +1,9 @@
 package com.yuchi.userservice.handler;
 
+import com.yuchi.common.constant.CommonConstant;
+import com.yuchi.common.utils.JwtUtil;
 import com.yuchi.userservice.common.ErrorCode;
-import com.yuchi.userservice.constant.UserConstant;
 import com.yuchi.userservice.exception.BusinessException;
-import com.yuchi.userservice.utils.JwtUtil;
 
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
@@ -31,7 +31,7 @@ public class JwtHandler implements HandlerInterceptor {
                 Claims acParse = JwtUtil.parse(accessToken);
                 if (acParse != null) {
                     String userId = acParse.getSubject();
-                    String redisAccessToken = stringRedisTemplate.opsForValue().get(UserConstant.ACCESS_TOKEN_PREFIX + userId);
+                    String redisAccessToken = stringRedisTemplate.opsForValue().get(CommonConstant.ACCESS_TOKEN_PREFIX + userId);
                     if (accessToken.equals(redisAccessToken)) {
                         return true;
                     }
@@ -42,7 +42,7 @@ public class JwtHandler implements HandlerInterceptor {
                 Claims rfParse = JwtUtil.parse(refreshToken);
                 if (rfParse != null) {
                     String userId = rfParse.getSubject();
-                    String redisRefreshToken = stringRedisTemplate.opsForValue().get(UserConstant.REFRESH_TOKEN_PREFIX + userId);
+                    String redisRefreshToken = stringRedisTemplate.opsForValue().get(CommonConstant.REFRESH_TOKEN_PREFIX + userId);
                     if (refreshToken.equals(redisRefreshToken)) {
                         throw new BusinessException(ErrorCode.TOKEN_EXPIRED); // 触发前端自动刷新
                     }

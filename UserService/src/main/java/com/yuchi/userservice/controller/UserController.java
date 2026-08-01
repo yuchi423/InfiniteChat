@@ -1,6 +1,7 @@
 package com.yuchi.userservice.controller;
 
 
+import com.yuchi.common.utils.JwtUtil;
 import com.yuchi.userservice.common.BaseResponse;
 import com.yuchi.userservice.common.ErrorCode;
 import com.yuchi.userservice.common.ResultUtils;
@@ -12,7 +13,6 @@ import com.yuchi.userservice.model.dto.UserRegisterRequest;
 import com.yuchi.userservice.model.vo.LoginAndRegisterResponse;
 import com.yuchi.userservice.model.vo.TokenResponse;
 import com.yuchi.userservice.service.UserService;
-import com.yuchi.userservice.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
