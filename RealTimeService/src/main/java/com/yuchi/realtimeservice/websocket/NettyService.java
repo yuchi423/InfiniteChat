@@ -12,7 +12,10 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.util.NettyRuntime;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /*
 负责说明：服务器怎么启动、监听哪个端口、使用多少线程、
@@ -20,12 +23,16 @@ import org.springframework.context.annotation.Configuration;
 主要做了：创建一台Netty WebSocket服务器-->规定每条客户端连接的数据应该经过哪些处理步骤
  */
 @Configuration
+@RequiredArgsConstructor
 public class NettyService {
 
     private final int port = 9101;
 
     private final NioEventLoopGroup bossGroup = new NioEventLoopGroup(1); //创建只有一个线程的EventLoopGroup，负责监听时间、接收连接并交由WorkerGroup
     private final NioEventLoopGroup workerGroup = new NioEventLoopGroup(NettyRuntime.availableProcessors() * 2);
+    private final StringRedisTemplate stringRedisTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
 
     @PostConstruct
     public void start() throws InterruptedException{
@@ -45,8 +52,9 @@ public class NettyService {
                         ChannelPipeline channelPipeline = socketChannel.pipeline(); //获取当前这个客户端SocketChannel所拥有的Pipeline
                         channelPipeline.addLast(new HttpServerCodec());
                         channelPipeline.addLast(new HttpObjectAggregator(65536));
+                        channelPipeline.addLast(new WebSocketAuthHeader(stringRedisTemplate));
                         channelPipeline.addLast(new WebSocketServerProtocolHandler("/ws/netty"));
-                        channelPipeline.addLast(new WebSocketHandler());
+                        channelPipeline.addLast(new WebSocketHandler(kafkaTemplate));
                     }
                 });
         serverBootstrap.bind(port).sync(); //将服务器绑定到本机9101端口

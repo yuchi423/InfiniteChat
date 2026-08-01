@@ -1,20 +1,102 @@
 package com.yuchi.realtimeservice.websocket;
 
+import com.yuchi.common.constant.CommonConstant;
+import com.yuchi.common.model.dto.MessageRequest;
+import com.yuchi.realtimeservice.utils.SnowflakeDynamicUtil;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.timeout.IdleStateEvent;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import cn.hutool.json.JSONUtil;
+import org.springframework.kafka.core.KafkaTemplate;
+
+import java.util.Date;
+
+import static io.netty.handler.timeout.IdleState.ALL_IDLE;
+import static io.netty.handler.timeout.IdleState.READER_IDLE;
 
 /*
 一条链接建立后，收到WebSocket文本消息时具体做什么
  */
 @Slf4j
+@AllArgsConstructor
 public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
-        System.out.println(msg.text());
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, TextWebSocketFrame textWebSocketFrame) {
+        Channel channel = channelHandlerContext.channel();
+        String msg = textWebSocketFrame.text();
+
+
+        try {
+            // 业务消息
+            if (channel.isActive()) {
+                sendMessageKafka(msg, channel);
+            } else {
+                log.warn("Channel {} inactive, skip message: {}", channel.id(), msg);
+            }
+        } catch (Exception e) {
+            log.error("Error handling message from {}: {}", channel.id(), msg, e);
+            clearChannel(channel);
+            channelHandlerContext.close();
+        }
     }
+
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+
+        // 处理心跳
+        if (evt instanceof IdleStateEvent event) {
+            switch (event.state()) {
+                case READER_IDLE:
+                    log.error("读空闲超时");
+                    clearChannel(ctx.channel());
+                    ctx.close();
+                    break;
+                case WRITER_IDLE:
+                    log.error("写空闲超时");
+                case ALL_IDLE:
+                    log.error("读写空闲超时");
+            }
+        }
+    }
+
+
+    public void sendMessageKafka(String message, Channel channel) {
+        MessageRequest messageRequest = JSONUtil.toBean(message, MessageRequest.class);
+        messageRequest.setMessageId(SnowflakeDynamicUtil.nextId());
+        messageRequest.setCreatedTime(new Date());
+
+        // 消息存储, 存储只存储一次，避免重复消费
+        kafkaTemplate.send(CommonConstant.KAFKA_MESSAGE_TOPIC_STORE, JSONUtil.toJsonStr(messageRequest)).whenComplete((success, failure) -> {
+            if (failure != null) {
+                // 生产者生产失败
+                System.err.println("生产者生产失败: " + failure.getMessage());
+                // 记录日志、告警、补偿等
+            } else {
+                // 生产者生产成功
+                System.out.println("生产者生产成功，offset: " + success.getRecordMetadata().offset());
+            }
+        });
+
+        // 消息推送消息
+        kafkaTemplate.send(CommonConstant.KAFKA_MESSAGE_TOPIC_PUSH, messageRequest.getSessionId().toString(), JSONUtil.toJsonStr(messageRequest)).whenComplete((success, failure) -> {
+            if (failure != null) {
+                // 生产者生产失败
+                System.err.println("生产者生产失败: " + failure.getMessage());
+                // 记录日志、告警、补偿等
+            } else {
+                // 生产者生产成功
+                System.out.println("生产者生产成功消息推送，offset: " + success.getRecordMetadata().offset());
+            }
+        });
+    }
+
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
@@ -22,14 +104,18 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         ctx.close();
     }
 
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
+
         System.out.println("channel active");
     }
 
+
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        clearChannel(ctx.channel());
         super.channelInactive(ctx);
         System.out.println("channel inActive");
     }
@@ -42,8 +128,31 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        clearChannel(ctx.channel());
         super.handlerRemoved(ctx);
         System.out.println("handler removed");
+    }
+
+
+    public void clearChannel(Channel channel) {
+        if (channel == null) {
+            return;
+        }
+        System.out.println("clearChannel: " + channel.id());
+
+        String userId = ChannelManager.getUserIdByChannel(channel);
+        try {
+            if (userId != null) {
+                ChannelManager.removeUserChannel(userId);
+            }
+            ChannelManager.removeChannelUser(channel);
+        } catch (Exception e) {
+            log.error("clearChannel failed for channel: {}, userId: {}", channel.id(), userId, e);
+        } finally {
+            if (channel.isActive()) {
+                channel.close();
+            }
+        }
     }
 
 }
