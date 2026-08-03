@@ -9,6 +9,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.NettyRuntime;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -35,12 +36,12 @@ public class NettyService {
 
 
     @PostConstruct
-    public void start() throws InterruptedException{
+    public void start() throws InterruptedException {
         //调用时自动启动Netty服务器
         run();
     }
 
-    public void run() throws InterruptedException{
+    public void run() throws InterruptedException {
         ServerBootstrap serverBootstrap = new ServerBootstrap(); //Netty服务器的装配器、配置器和启动器
         //规定使用哪些EventLoopGroup, 哪种SeverChannel，每个客户端连接装什么Pipeline，监听哪个端口
         serverBootstrap.group(bossGroup, workerGroup)
@@ -50,6 +51,7 @@ public class NettyService {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         ChannelPipeline channelPipeline = socketChannel.pipeline(); //获取当前这个客户端SocketChannel所拥有的Pipeline
+                        channelPipeline.addLast(new IdleStateHandler(60,0,0));
                         channelPipeline.addLast(new HttpServerCodec());
                         channelPipeline.addLast(new HttpObjectAggregator(65536));
                         channelPipeline.addLast(new WebSocketAuthHeader(stringRedisTemplate));
@@ -61,7 +63,7 @@ public class NettyService {
     }
 
     @PreDestroy
-    public void destroy(){
+    public void destroy() {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
     }
