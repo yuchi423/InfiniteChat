@@ -19,9 +19,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ConsumerMessageService {
     //将kafka消息推给用户
-    @KafkaListener(topics = "message-topic", groupId = "infinite-chat-push-group-0") //持续监听message_topic，一旦出现信息就调用consume()
+    @KafkaListener(topics = "message-topic", groupId = "infinite-chat-push-group-0")
+    //持续监听message_topic，一旦出现信息就调用consume()
     public void consume(String message) {
-        System.out.println("收到消息：" + message);
         MessageRequest messageRequest = JSONUtil.toBean(message, MessageRequest.class);
         System.out.println("收到消息：" + messageRequest);
         if (messageRequest.getSessionType() == SessionTypeConstant.SIGNAL_TYPE) {
@@ -35,11 +35,12 @@ public class ConsumerMessageService {
         MessageResponse messageResponse = createMessageResponse(messageRequest);
         pushMessageToUser(messageResponse, messageRequest.getSenderId());
         pushMessageToUser(messageResponse, messageRequest.getReceiverId());
+        //消息之所以要同时推给双方，是因为服务器后续需要向sender推回确认后的消息。
 
     }
 
     public void groupMessage(MessageRequest messageRequest) {
-        
+
     }
 
     public MessageResponse createMessageResponse(MessageRequest messageRequest) {
@@ -54,6 +55,7 @@ public class ConsumerMessageService {
         Channel channel = ChannelManager.getChannelByUserId(receiverId.toString());
         if (channel != null) {
             TextWebSocketFrame frame = new TextWebSocketFrame(JSONUtil.toJsonStr(messageResponse));
+            //将frame消息写入发送缓存，并推动缓冲中的数据发送出去，由于Netty是异步的，writeAndFlush()返回一个ChannelFuture
             channel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
                 if (future.isSuccess()) {
                     log.info("消息发送成功: {}", messageResponse);

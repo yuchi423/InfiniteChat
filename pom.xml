@@ -18,6 +18,7 @@
         <module>common</module>
         <module>UserService</module>
         <module>RealTimeService</module>
+        <module>OfflineDataService</module>
     </modules>
     <url/>
     <licenses>

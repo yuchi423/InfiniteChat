@@ -3,6 +3,7 @@ package com.yuchi.realtimeservice.websocket;
 import io.netty.channel.Channel;
 
 import java.util.concurrent.ConcurrentHashMap;
+
 /*
 服务器拥有Channel，而业务代码需要userid，需要一个中间层manager将网络和业务概念连接
  */
