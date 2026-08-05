@@ -3,6 +3,10 @@ spring:
     import: optional:file:../.env[.properties],optional:file:.env[.properties]
   application:
     name: UserService
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${MYSQL_URL:jdbc:mysql://localhost:3307/infinite_chat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai}
