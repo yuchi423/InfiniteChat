@@ -5,7 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.yuchi.common.constant.SessionTypeConstant;
 import com.yuchi.common.model.dto.MessageRequest;
 import com.yuchi.common.utils.FormatDateUtil;
-import com.yuchi.common.vo.MessageResponse;
+import com.yuchi.common.model.vo.MessageResponse;
 import com.yuchi.realtimeservice.websocket.ChannelManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;

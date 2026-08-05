@@ -1,4 +1,4 @@
-package com.yuchi.common.vo;
+package com.yuchi.common.model.vo;
 
 import lombok.Data;
 
