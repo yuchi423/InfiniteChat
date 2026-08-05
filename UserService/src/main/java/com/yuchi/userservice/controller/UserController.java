@@ -2,9 +2,9 @@ package com.yuchi.userservice.controller;
 
 
 import com.yuchi.common.utils.JwtUtil;
-import com.yuchi.userservice.common.BaseResponse;
-import com.yuchi.userservice.common.ErrorCode;
-import com.yuchi.userservice.common.ResultUtils;
+import com.yuchi.common.common.BaseResponse;
+import com.yuchi.common.common.ErrorCode;
+import com.yuchi.common.common.ResultUtils;
 import com.yuchi.userservice.constant.UserConstant;
 import com.yuchi.userservice.exception.ThrowUtils;
 import com.yuchi.userservice.model.dto.UserLoginCodeRequest;

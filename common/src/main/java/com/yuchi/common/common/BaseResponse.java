@@ -1,4 +1,4 @@
-package com.yuchi.userservice.common;
+package com.yuchi.common.common;
 
 import java.io.Serializable;
 

@@ -58,12 +58,5 @@ public class GlobalExceptionHandler {
         log.error("缺少必填参数:{}", e.toString());
         return ResultUtils.error(ErrorCode.INVALID_PARAMETER_ERROR, "缺少必填参数");
     }
-
-    @ExceptionHandler(InputGuardrailException.class)
-    public BaseResponse<?> inputGuardrailExceptionHandler(InputGuardrailException e) {
-        log.error("敏感词拦截: {}", e.getMessage());
-        // 直接从异常信息里获取提示内容返回给前端
-        // 或者统一返回 SENSITIVE_WORD_ERROR
-        return ResultUtils.error(ErrorCode.SENSITIVE_WORD_ERROR);
-    }
+    
 }

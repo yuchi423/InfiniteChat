@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yuchi.common.constant.CommonConstant;
 import com.yuchi.common.utils.JwtUtil;
-import com.yuchi.userservice.common.ErrorCode;
+import com.yuchi.common.common.ErrorCode;
 import com.yuchi.userservice.constant.UserConstant;
 import com.yuchi.userservice.exception.ThrowUtils;
 import com.yuchi.userservice.mapper.UserMapper;

@@ -1,6 +1,6 @@
 package com.yuchi.userservice.exception;
 
-import com.yuchi.userservice.common.ErrorCode;
+import com.yuchi.common.common.ErrorCode;
 
 public class BusinessException extends RuntimeException {
 

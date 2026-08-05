@@ -2,7 +2,7 @@ package com.yuchi.userservice.handler;
 
 import com.yuchi.common.constant.CommonConstant;
 import com.yuchi.common.utils.JwtUtil;
-import com.yuchi.userservice.common.ErrorCode;
+import com.yuchi.common.common.ErrorCode;
 import com.yuchi.userservice.exception.BusinessException;
 
 import io.jsonwebtoken.Claims;

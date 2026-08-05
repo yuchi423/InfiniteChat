@@ -1,8 +1,8 @@
 package com.yuchi.userservice.exception;
 
-import com.yuchi.userservice.common.BaseResponse;
-import com.yuchi.userservice.common.ErrorCode;
-import com.yuchi.userservice.common.ResultUtils;
+import com.yuchi.common.common.BaseResponse;
+import com.yuchi.common.common.ErrorCode;
+import com.yuchi.common.common.ResultUtils;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
