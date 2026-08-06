@@ -19,12 +19,11 @@ public interface UserService extends IService<User> {
 
     LoginAndRegisterResponse loginPassword(UserLoginPasswordRequest userLoginPasswordRequest);
 
-
-
     LoginAndRegisterResponse loginCode(UserLoginCodeRequest userLoginCodeRequest);
 
     boolean logout(String userId);
 
-
     TokenResponse refreshToken(String refreshToken);
+
+    String refreshUri(Long userId);
 }

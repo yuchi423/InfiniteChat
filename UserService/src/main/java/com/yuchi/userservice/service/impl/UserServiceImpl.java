@@ -198,6 +198,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         stringRedisTemplate.opsForValue().set(CommonConstant.REFRESH_TOKEN_PREFIX + userId, newRefreshToken, CommonConstant.REFRESH_TOKEN_EXPIRE_TIME, CommonConstant.REFRESH_TOKEN_UNIT);
         return TokenResponse.builder().accessToken(newAccessToken).refreshToken(newRefreshToken).build();
     }
+
+    @Override
+    public String refreshUri(Long userId){
+        return serviceInstanceUtil.getServiceInstance(String.valueOf(userId));
+    }
 }
 
 
