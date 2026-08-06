@@ -40,7 +40,7 @@ public class UserController {
 
     @GetMapping("/refresh/uri")
     public BaseResponse<String> refreshUri(@RequestParam Long userId){
-        return ResultUtils.success(userService.refreshUri(userId);
+        return ResultUtils.success(userService.refreshUri(userId));
     }
 
     @PostMapping("/register")

@@ -1,6 +1,14 @@
 spring:
+  config:
+    import: optional:file:../.env[.properties],optional:file:.env[.properties]
   application:
     name: GateWay
+  data:
+    redis:
+      database: ${REDIS_DATABASE:0}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:59000}
+      password: ${REDIS_PASSWORD:1}
   cloud:
     nacos:
       discovery:
