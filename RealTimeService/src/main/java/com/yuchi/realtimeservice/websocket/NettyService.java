@@ -14,6 +14,7 @@ import io.netty.util.NettyRuntime;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -27,7 +28,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @RequiredArgsConstructor
 public class NettyService {
 
-    private final int port = 9101;
+    @Value("${netty.server.port:9101}")
+    private int port;
 
     private final NioEventLoopGroup bossGroup = new NioEventLoopGroup(1); //创建只有一个线程的EventLoopGroup，负责监听时间、接收连接并交由WorkerGroup
     private final NioEventLoopGroup workerGroup = new NioEventLoopGroup(NettyRuntime.availableProcessors() * 2);

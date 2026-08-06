@@ -10,6 +10,7 @@ import com.yuchi.common.utils.JwtUtil;
 import com.yuchi.common.common.ErrorCode;
 import com.yuchi.userservice.constant.UserConstant;
 import com.yuchi.userservice.exception.ThrowUtils;
+import com.yuchi.userservice.loadbalancer.NettyServiceLocator;
 import com.yuchi.userservice.mapper.UserMapper;
 import com.yuchi.userservice.model.dto.UserLoginCodeRequest;
 import com.yuchi.userservice.model.dto.UserLoginPasswordRequest;
@@ -25,6 +26,8 @@ import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -35,23 +38,27 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
-    implements UserService {
+        implements UserService {
 
 
     @Resource
     private EmailUtil emailUtil;
 
-
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private NettyServiceLocator serviceInstanceUtil;
 
     @Override
     public void sendCaptcha(String targetEmail) {
         String existingCode = stringRedisTemplate.opsForValue().get(targetEmail);
-        ThrowUtils.throwIf(StringUtils.isNotBlank(existingCode), ErrorCode.LOGIN_SEND_CODE_ERROR);
+        ThrowUtils.throwIf(StringUtils.isNotBlank(existingCode), ErrorCode.SYSTEM_ERROR);
 
         String randomCode = RandomCodeUtil.getRandomCode();
+
         emailUtil.sendEmail(targetEmail, randomCode);
+
         stringRedisTemplate.opsForValue().set(targetEmail, randomCode, UserConstant.CAPTCHA_EXPIRE_TIME, TimeUnit.MINUTES);
     }
 
@@ -62,14 +69,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String code = userRegisterRequest.getCode();
         // 验证验证码是否正确
         String redisCode = stringRedisTemplate.opsForValue().get(email);
-        ThrowUtils.throwIf(StringUtils.isBlank(redisCode) || !code.equals(redisCode),ErrorCode.LOGIN_ERROR_CODE);
+        ThrowUtils.throwIf(StringUtils.isBlank(redisCode) || !code.equals(redisCode), ErrorCode.LOGIN_ERROR_CODE);
 
         // 验证用户账号是否已经存在
         ThrowUtils.throwIf(getUser(email) != null, ErrorCode.USER_ALREADY_EXISTS);
 
 
         // 验证密码是否相同
-        ThrowUtils.throwIf(!userRegisterRequest.getPassword().equals(userRegisterRequest.getConfirmPassword()),ErrorCode.LOGIN_PASSWORD_ERROR);
+        ThrowUtils.throwIf(!userRegisterRequest.getPassword().equals(userRegisterRequest.getConfirmPassword()), ErrorCode.LOGIN_ERROR);
 
 
         String password = userRegisterRequest.getPassword();
@@ -80,11 +87,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         synchronized (email.intern()) {
             Snowflake snowflake = IdUtil.getSnowflake(UserConstant.WORKER_ID, UserConstant.DATA_CENTER_ID);
+
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setUserId(snowflake.nextId());
             newUser.setNickname(userRegisterRequest.getNickname());
             newUser.setPassword(encryptedPassword);
+
             boolean saveUser = this.save(newUser);
             ThrowUtils.throwIf(!saveUser, ErrorCode.SYSTEM_ERROR);
             BeanUtil.copyProperties(getUser(email), loginAndRegisterResponse);
@@ -117,7 +126,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String code = userLoginCodeRequest.getCode();
 
         String redisCode = stringRedisTemplate.opsForValue().get(email);
-        ThrowUtils.throwIf(StringUtils.isBlank(redisCode) || !code.equals(redisCode),ErrorCode.LOGIN_ERROR_CODE);
+        ThrowUtils.throwIf(StringUtils.isBlank(redisCode) || !code.equals(redisCode), ErrorCode.LOGIN_ERROR_CODE);
 
         // 删除 redis 保存的验证码
         stringRedisTemplate.delete(email);
@@ -139,22 +148,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
 
-
     public LoginAndRegisterResponse createJwt(LoginAndRegisterResponse loginAndRegisterResponse) {
         String userId = loginAndRegisterResponse.getUserId().toString();
         String accessToken = JwtUtil.generate(userId, CommonConstant.ACCESS_TOKEN_EXPIRE_TIME, CommonConstant.ACCESS_TOKEN_UNIT);
         String refreshToken = JwtUtil.generate(userId, CommonConstant.REFRESH_TOKEN_EXPIRE_TIME, CommonConstant.REFRESH_TOKEN_UNIT);
+
         loginAndRegisterResponse.setAccessToken(accessToken);
         loginAndRegisterResponse.setRefreshToken(refreshToken);
+
         stringRedisTemplate.opsForValue().set(CommonConstant.ACCESS_TOKEN_PREFIX + userId, accessToken, CommonConstant.ACCESS_TOKEN_EXPIRE_TIME, CommonConstant.ACCESS_TOKEN_UNIT);
         stringRedisTemplate.opsForValue().set(CommonConstant.REFRESH_TOKEN_PREFIX + userId, refreshToken, CommonConstant.REFRESH_TOKEN_EXPIRE_TIME, CommonConstant.REFRESH_TOKEN_UNIT);
+
+        String nettyUri = serviceInstanceUtil.getServiceInstance(loginAndRegisterResponse.getUserId().toString());
+        loginAndRegisterResponse.setNettyUri(nettyUri);
         return loginAndRegisterResponse;
     }
 
     @Override
     public boolean logout(String userId) {
+
         stringRedisTemplate.delete(CommonConstant.ACCESS_TOKEN_PREFIX + userId);
         stringRedisTemplate.delete(CommonConstant.REFRESH_TOKEN_PREFIX + userId);
+
         return true;
     }
 
