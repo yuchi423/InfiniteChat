@@ -6,24 +6,34 @@ import com.yuchi.common.constant.SessionTypeConstant;
 import com.yuchi.common.model.dto.MessageRequest;
 import com.yuchi.common.utils.FormatDateUtil;
 import com.yuchi.common.model.vo.MessageResponse;
+import com.yuchi.realtimeservice.client.UserServiceClient;
 import com.yuchi.realtimeservice.websocket.ChannelManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
 @Slf4j
 public class ConsumerMessageService {
+
+    @Resource
+    private UserServiceClient userServiceClient;
+
+
     //将kafka消息推给用户
     @KafkaListener(topics = "message-topic", groupId = "infinite-chat-push-group-0")
     //持续监听message_topic，一旦出现信息就调用consume()
     public void consume(String message) {
         MessageRequest messageRequest = JSONUtil.toBean(message, MessageRequest.class);
         System.out.println("收到消息：" + messageRequest);
+
         if (messageRequest.getSessionType() == SessionTypeConstant.SIGNAL_TYPE) {
             signalMessage(messageRequest);
         } else if (messageRequest.getSessionType() == SessionTypeConstant.GROUP_TYPE) {
@@ -33,6 +43,7 @@ public class ConsumerMessageService {
 
     public void signalMessage(MessageRequest messageRequest) {
         MessageResponse messageResponse = createMessageResponse(messageRequest);
+
         pushMessageToUser(messageResponse, messageRequest.getSenderId());
         pushMessageToUser(messageResponse, messageRequest.getReceiverId());
         //消息之所以要同时推给双方，是因为服务器后续需要向sender推回确认后的消息。
@@ -40,6 +51,13 @@ public class ConsumerMessageService {
     }
 
     public void groupMessage(MessageRequest messageRequest) {
+
+        List<Long> receiveUserIds = userServiceClient.getUserIdBySessionId(messageRequest.getSessionId()); //找到接收者id
+        MessageResponse messageResponse = createMessageResponse(messageRequest);
+
+        for (Long receiveUserId : receiveUserIds) {
+            pushMessageToUser(messageResponse, receiveUserId);
+        }
 
     }
 
