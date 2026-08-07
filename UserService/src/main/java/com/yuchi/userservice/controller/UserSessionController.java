@@ -17,7 +17,7 @@ public class UserSessionController {
     private UserSessionService userSessionService;
 
     @GetMapping("/get/receivers")
-    List<Long> getUserIdBySessionId(@RequestParam("sessonId") Long sessionId){
+    List<Long> getUserIdBySessionId(@RequestParam("sessionId") Long sessionId){
         return userSessionService.getUserIdBySessionId(sessionId);
     }
 }
