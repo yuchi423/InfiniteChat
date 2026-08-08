@@ -10,8 +10,10 @@ import com.yuchi.userservice.exception.ThrowUtils;
 import com.yuchi.userservice.model.dto.UserLoginCodeRequest;
 import com.yuchi.userservice.model.dto.UserLoginPasswordRequest;
 import com.yuchi.userservice.model.dto.UserRegisterRequest;
+import com.yuchi.userservice.model.entity.UpdateAvatarRequest;
 import com.yuchi.userservice.model.vo.LoginAndRegisterResponse;
 import com.yuchi.userservice.model.vo.TokenResponse;
+import com.yuchi.userservice.model.vo.UploadUrlResponse;
 import com.yuchi.userservice.service.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
@@ -78,7 +80,15 @@ public class UserController {
         return ResultUtils.success(userService.refreshToken(refreshToken));
     }
 
+    @GetMapping("/uploadUrl")
+    public BaseResponse<UploadUrlResponse> getUploadUrl(@RequestParam String fileName) {
+        return ResultUtils.success(userService.uploadUrl(fileName));
+    }
 
+    @PostMapping("/update/avatar")
+    public BaseResponse<Boolean> updateAvatar(@RequestBody UpdateAvatarRequest updateAvatarRequest)  {
+        return ResultUtils.success(userService.updateAvatar(updateAvatarRequest));
+    }
 }
 
 

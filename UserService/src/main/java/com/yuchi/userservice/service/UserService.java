@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.yuchi.userservice.model.dto.UserLoginCodeRequest;
 import com.yuchi.userservice.model.dto.UserLoginPasswordRequest;
 import com.yuchi.userservice.model.dto.UserRegisterRequest;
+import com.yuchi.userservice.model.entity.UpdateAvatarRequest;
 import com.yuchi.userservice.model.entity.User;
 import com.yuchi.userservice.model.vo.LoginAndRegisterResponse;
 import com.yuchi.userservice.model.vo.TokenResponse;
+import com.yuchi.userservice.model.vo.UploadUrlResponse;
 
 
 public interface UserService extends IService<User> {
@@ -26,4 +28,8 @@ public interface UserService extends IService<User> {
     TokenResponse refreshToken(String refreshToken);
 
     String refreshUri(Long userId);
+
+    UploadUrlResponse uploadUrl(String fileName);
+
+    Boolean updateAvatar(UpdateAvatarRequest updateAvatarRequest);
 }

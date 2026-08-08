@@ -15,12 +15,15 @@ import com.yuchi.userservice.mapper.UserMapper;
 import com.yuchi.userservice.model.dto.UserLoginCodeRequest;
 import com.yuchi.userservice.model.dto.UserLoginPasswordRequest;
 import com.yuchi.userservice.model.dto.UserRegisterRequest;
+import com.yuchi.userservice.model.entity.UpdateAvatarRequest;
 import com.yuchi.userservice.model.entity.User;
 import com.yuchi.userservice.model.vo.LoginAndRegisterResponse;
 import com.yuchi.userservice.model.vo.TokenResponse;
+import com.yuchi.userservice.model.vo.UploadUrlResponse;
 import com.yuchi.userservice.service.UserService;
 
 import com.yuchi.userservice.utils.EmailUtil;
+import com.yuchi.userservice.utils.OssUtils;
 import com.yuchi.userservice.utils.RandomCodeUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
@@ -200,8 +203,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public String refreshUri(Long userId){
+    public String refreshUri(Long userId) {
         return serviceInstanceUtil.getServiceInstance(String.valueOf(userId));
+    }
+
+    @Resource
+    private OssUtils ossUtils;
+
+    @Override
+    public UploadUrlResponse uploadUrl(String fileName) {
+        UploadUrlResponse uploadUrlResponse = new UploadUrlResponse();
+
+        uploadUrlResponse.setUploadUrl(ossUtils.uploadUrl(CommonConstant.BUCKET_NAME, fileName, CommonConstant.PICTURE_EXPIRE_TIME));
+        uploadUrlResponse.setDownloadUrl(ossUtils.downUrl(CommonConstant.BUCKET_NAME, fileName));
+
+        return uploadUrlResponse;
+    }
+
+    @Override
+    public Boolean updateAvatar(UpdateAvatarRequest updateAvatarRequest) {
+        User user = this.getById(updateAvatarRequest.getUserId());
+
+        if (user == null) {
+            return false;
+        }
+
+        user.setAvatar(updateAvatarRequest.getUri());
+        return this.updateById(user);
     }
 }
 

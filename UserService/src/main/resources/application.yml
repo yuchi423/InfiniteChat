@@ -34,5 +34,10 @@ spring:
 mybatis-plus:
   mapper-locations: classpath*:mapper/*.xml
 
+minio:
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:}
+  secret-key: ${MINIO_SECRET_KEY:}
+
 server:
   port: 8104
