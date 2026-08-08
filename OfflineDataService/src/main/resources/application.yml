@@ -36,3 +36,18 @@ spring:
 
 server:
   port: 8102
+
+canal:
+  server:
+    host: ${CANAL_HOST:localhost}
+    port: ${CANAL_PORT:11111}
+  destination: ${CANAL_DESTINATION:example}
+  username: ${CANAL_USERNAME:}
+  password: ${CANAL_PASSWORD:}
+  filter: ${CANAL_FILTER:InfiniteChat\\..*}
+  client:
+    heartbeat:
+      interval: 2000
+      timeout: 3000
+    socket:
+      timeout: 6000

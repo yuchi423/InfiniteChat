@@ -8,7 +8,9 @@ import com.yuchi.common.model.dto.MessageRequest;
 import com.yuchi.offlinedataservice.model.entity.Message;
 import com.yuchi.offlinedataservice.mapper.MessageMapper;
 import com.yuchi.offlinedataservice.service.MessageService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
 
     @Override
