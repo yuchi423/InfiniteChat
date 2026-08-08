@@ -21,6 +21,8 @@ public class MessageRequest {
 
     private Long messageId;
 
+    private MessageBody body;
+
     private String clientMessageId;
 
 }

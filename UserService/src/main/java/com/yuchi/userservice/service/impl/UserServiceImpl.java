@@ -214,8 +214,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public UploadUrlResponse uploadUrl(String fileName) {
         UploadUrlResponse uploadUrlResponse = new UploadUrlResponse();
 
-        uploadUrlResponse.setUploadUrl(ossUtils.uploadUrl(CommonConstant.BUCKET_NAME, fileName, CommonConstant.PICTURE_EXPIRE_TIME));
-        uploadUrlResponse.setDownloadUrl(ossUtils.downUrl(CommonConstant.BUCKET_NAME, fileName));
+        uploadUrlResponse.setUploadUrl(ossUtils.uploadUrl(CommonConstant.BUCKET_NAME, fileName, CommonConstant.PICTURE_EXPIRE_TIME));//客户端向MinIO上传图片
+        uploadUrlResponse.setDownloadUrl(ossUtils.downUrl(CommonConstant.BUCKET_NAME, fileName));//上传完成后访问、展示图片
 
         return uploadUrlResponse;
     }

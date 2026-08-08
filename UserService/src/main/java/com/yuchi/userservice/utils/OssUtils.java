@@ -22,6 +22,7 @@ public class OssUtils {
 
     @SneakyThrows
     public String uploadUrl(String bucketName, String objectName, Integer expires){
+        //生成预签名URL，允许客户端在限定时间内通过改URL执行一次被允许的操作
         return minioClient.getPresignedObjectUrl(
                 GetPresignedObjectUrlArgs.builder()
                         .method(Method.PUT)

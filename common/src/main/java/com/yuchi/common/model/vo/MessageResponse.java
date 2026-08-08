@@ -1,5 +1,6 @@
 package com.yuchi.common.model.vo;
 
+import com.yuchi.common.model.dto.MessageBody;
 import lombok.Data;
 
 @Data
@@ -23,4 +24,6 @@ public class MessageResponse {
     private String avatar;
 
     private Integer role;
+
+    private MessageBody body;
 }
